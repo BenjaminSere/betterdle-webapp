@@ -1,0 +1,1151 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "BetterDLE API",
+    "description": "API pour gérer les données de champions League of Legends et autres jeux supportés",
+    "contact": {
+      "name": "BetterDLE Team"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Serveur de développement local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Administration",
+      "description": "Endpoints d'administration pour la gestion des champions"
+    },
+    {
+      "name": "Champions",
+      "description": "Endpoints pour gérer les champions League of Legends"
+    }
+  ],
+  "paths": {
+    "/api/v1/admin/lol/{localeStr}/champions/{id}/refresh": {
+      "post": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Rafraîchir un champion",
+        "description": "Force le rafraîchissement des données (métadonnées + assets) d'un champion spécifique",
+        "operationId": "refreshChampion",
+        "parameters": [
+          {
+            "name": "localeStr",
+            "in": "path",
+            "description": "Code de la langue",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID du champion",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "500": {
+            "description": "Erreur lors du rafraîchissement",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Champion"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Champion rafraîchi avec succès",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Champion"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Champion ou langue non trouvé(e)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Champion"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/lol/{localeStr}/champions/sync": {
+      "post": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Synchroniser les données",
+        "description": "Déclenche manuellement la synchronisation avec le Wiki LoL. Ne met à jour que les champs null existants",
+        "operationId": "synchronize",
+        "parameters": [
+          {
+            "name": "localeStr",
+            "in": "path",
+            "description": "Code de la langue",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Synchronisation réussie",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncResultDTO"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Langue non supportée",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncResultDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur lors de la synchronisation",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/lol/{localeStr}/champions/{id}": {
+      "patch": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Mettre à jour un champion",
+        "description": "Met à jour manuellement un champion (édition partielle). Seuls les champs fournis seront modifiés",
+        "operationId": "patchChampion",
+        "parameters": [
+          {
+            "name": "localeStr",
+            "in": "path",
+            "description": "Code de la langue",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID du champion",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChampionPatchDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Champion mis à jour avec succès",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Champion"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Champion ou langue non trouvé(e)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Champion"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/{gameStr}/{localeStr}/champions": {
+      "get": {
+        "tags": [
+          "Champions"
+        ],
+        "summary": "Récupérer tous les champions",
+        "description": "Retourne une liste paginée de tous les champions",
+        "operationId": "findAll",
+        "parameters": [
+          {
+            "name": "gameStr",
+            "in": "path",
+            "description": "Identifiant du jeu (ex: lol)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "localeStr",
+            "in": "path",
+            "description": "Code de la langue (ex: fr_FR, en_US)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Jeu ou langue non supporté(e)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageChampion"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Liste des champions récupérée avec succès",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageChampion"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/{gameStr}/{localeStr}/champions/{name}": {
+      "get": {
+        "tags": [
+          "Champions"
+        ],
+        "summary": "Récupérer un champion par nom",
+        "description": "Retourne les détails d'un champion spécifique",
+        "operationId": "findByName",
+        "parameters": [
+          {
+            "name": "gameStr",
+            "in": "path",
+            "description": "Identifiant du jeu",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "localeStr",
+            "in": "path",
+            "description": "Code de la langue",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Nom du champion",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Ahri"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Champion, jeu ou langue non trouvé(e)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Champion"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Champion trouvé",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Champion"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/{gameStr}/{localeStr}/champions/{name}/images/splash": {
+      "get": {
+        "tags": [
+          "Champions"
+        ],
+        "summary": "Récupérer l'image splash d'un skin",
+        "description": "Retourne l'image splash (grand format) pour un skin spécifique",
+        "operationId": "getSplash",
+        "parameters": [
+          {
+            "name": "gameStr",
+            "in": "path",
+            "description": "Identifiant du jeu",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "localeStr",
+            "in": "path",
+            "description": "Code de la langue",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Nom du champion",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skinNum",
+            "in": "query",
+            "description": "Numéro du skin",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "example": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image récupérée avec succès",
+            "content": {
+              "image/webp": {
+
+              }
+            }
+          },
+          "404": {
+            "description": "Champion, skin ou image non trouvé(e)",
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/{gameStr}/{localeStr}/champions/{name}/images/spells/{spellKey}": {
+      "get": {
+        "tags": [
+          "Champions"
+        ],
+        "summary": "Récupérer l'icône d'une compétence",
+        "description": "Retourne l'image d'une compétence spécifique du champion (Q, W, E, R)",
+        "operationId": "getSpell",
+        "parameters": [
+          {
+            "name": "gameStr",
+            "in": "path",
+            "description": "Identifiant du jeu",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "localeStr",
+            "in": "path",
+            "description": "Code de la langue",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Nom du champion",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "spellKey",
+            "in": "path",
+            "description": "Touche de la compétence",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Q"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image récupérée avec succès",
+            "content": {
+              "image/webp": {
+
+              }
+            }
+          },
+          "404": {
+            "description": "Champion, compétence ou image non trouvé(e)",
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/{gameStr}/{localeStr}/champions/{name}/images/passive": {
+      "get": {
+        "tags": [
+          "Champions"
+        ],
+        "summary": "Récupérer l'icône de la compétence passive",
+        "description": "Retourne l'image de la compétence passive du champion au format WebP",
+        "operationId": "getPassive",
+        "parameters": [
+          {
+            "name": "gameStr",
+            "in": "path",
+            "description": "Identifiant du jeu",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "localeStr",
+            "in": "path",
+            "description": "Code de la langue",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Nom du champion",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image récupérée avec succès",
+            "content": {
+              "image/webp": {
+
+              }
+            }
+          },
+          "404": {
+            "description": "Champion ou image non trouvé(e)",
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/{gameStr}/{localeStr}/champions/{name}/images/loading": {
+      "get": {
+        "tags": [
+          "Champions"
+        ],
+        "summary": "Récupérer l'image de chargement d'un skin",
+        "description": "Retourne l'image de chargement de jeu pour un skin spécifique",
+        "operationId": "getLoading",
+        "parameters": [
+          {
+            "name": "gameStr",
+            "in": "path",
+            "description": "Identifiant du jeu",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "localeStr",
+            "in": "path",
+            "description": "Code de la langue",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Nom du champion",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skinNum",
+            "in": "query",
+            "description": "Numéro du skin",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "example": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image récupérée avec succès",
+            "content": {
+              "image/webp": {
+
+              }
+            }
+          },
+          "404": {
+            "description": "Champion, skin ou image non trouvé(e)",
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/{gameStr}/{localeStr}/champions/{name}/images/icon": {
+      "get": {
+        "tags": [
+          "Champions"
+        ],
+        "summary": "Récupérer l'icône du champion",
+        "description": "Retourne l'image de l'icône du champion au format WebP",
+        "operationId": "getIcon",
+        "parameters": [
+          {
+            "name": "gameStr",
+            "in": "path",
+            "description": "Identifiant du jeu",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "localeStr",
+            "in": "path",
+            "description": "Code de la langue",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Nom du champion",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image récupérée avec succès",
+            "content": {
+              "image/webp": {
+
+              }
+            }
+          },
+          "404": {
+            "description": "Champion ou image non trouvé(e)",
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/lol/{localeStr}/champions/stats": {
+      "get": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Récupérer les statistiques",
+        "description": "Retourne les statistiques actuelles (total, complets, incomplets, dernière synchronisation)",
+        "operationId": "getStats",
+        "parameters": [
+          {
+            "name": "localeStr",
+            "in": "path",
+            "description": "Code de la langue",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Langue non supportée",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncResultDTO"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Statistiques récupérées avec succès",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/lol/{localeStr}/champions/incomplete": {
+      "get": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Récupérer les champions incomplets",
+        "description": "Retourne la liste des champions ayant au moins un champ incomplet (null ou vide)",
+        "operationId": "getIncompleteChampions",
+        "parameters": [
+          {
+            "name": "localeStr",
+            "in": "path",
+            "description": "Code de la langue",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des champions incomplets récupérée avec succès",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Champion"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Langue non supportée",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Champion"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Champion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "iconURL": {
+            "type": "string"
+          },
+          "releaseDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER",
+              "UNKNOWN"
+            ]
+          },
+          "syncStatus": {
+            "type": "string",
+            "enum": [
+              "DETECTED",
+              "METADATA_SYNCED",
+              "ASSETS_DOWNLOADED",
+              "READY",
+              "INCOMPLETE"
+            ]
+          },
+          "version": {
+            "type": "string"
+          },
+          "championClass": {
+            "type": "string",
+            "enum": [
+              "ASSASSIN",
+              "FIGHTER",
+              "MAGE",
+              "MARKSMAN",
+              "SUPPORT",
+              "TANK",
+              "UNKNOWN"
+            ]
+          },
+          "positions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "species": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "resource": {
+            "type": "string",
+            "enum": [
+              "MANA",
+              "ENERGY",
+              "NONE",
+              "HEALTH",
+              "RAGE",
+              "FURY",
+              "FEROCITY",
+              "HEAT",
+              "GRIT",
+              "FLOW",
+              "BLOOD_WELL",
+              "COURAGE",
+              "SHIELD",
+              "OTHER"
+            ]
+          },
+          "attackRangeType": {
+            "type": "string"
+          },
+          "regions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "DEMACIA",
+                "NOXUS",
+                "IONIA",
+                "FRELJORD",
+                "PILTOVER",
+                "ZAUN",
+                "BILGEWATER",
+                "SHURIMA",
+                "TARGON",
+                "SHADOW_ISLES",
+                "BANDLE_CITY",
+                "VOID",
+                "IXTAL",
+                "RUNETERRA",
+                "UNKNOWN"
+              ]
+            }
+          },
+          "passiveIconURL": {
+            "type": "string"
+          },
+          "spells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChampionSpell"
+            }
+          },
+          "skins": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChampionSkin"
+            }
+          },
+          "complete": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ChampionSkin": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "num": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "splashUrl": {
+            "type": "string"
+          },
+          "loadingUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "ChampionSpell": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "cooldown": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "SyncResultDTO": {
+        "type": "object",
+        "properties": {
+          "totalChampions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "complete": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "incomplete": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastSync": {
+            "type": "string"
+          },
+          "currentLoLVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "ChampionPatchDTO": {
+        "type": "object",
+        "properties": {
+          "gender": {
+            "type": "string",
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER",
+              "UNKNOWN"
+            ]
+          },
+          "championClass": {
+            "type": "string",
+            "enum": [
+              "ASSASSIN",
+              "FIGHTER",
+              "MAGE",
+              "MARKSMAN",
+              "SUPPORT",
+              "TANK",
+              "UNKNOWN"
+            ]
+          },
+          "positions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "species": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "regions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "DEMACIA",
+                "NOXUS",
+                "IONIA",
+                "FRELJORD",
+                "PILTOVER",
+                "ZAUN",
+                "BILGEWATER",
+                "SHURIMA",
+                "TARGON",
+                "SHADOW_ISLES",
+                "BANDLE_CITY",
+                "VOID",
+                "IXTAL",
+                "RUNETERRA",
+                "UNKNOWN"
+              ]
+            }
+          },
+          "resource": {
+            "type": "string",
+            "enum": [
+              "MANA",
+              "ENERGY",
+              "NONE",
+              "HEALTH",
+              "RAGE",
+              "FURY",
+              "FEROCITY",
+              "HEAT",
+              "GRIT",
+              "FLOW",
+              "BLOOD_WELL",
+              "COURAGE",
+              "SHIELD",
+              "OTHER"
+            ]
+          },
+          "attackRangeType": {
+            "type": "string"
+          },
+          "releaseDate": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Pageable": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "sort": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PageChampion": {
+        "type": "object",
+        "properties": {
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Champion"
+            }
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject"
+          },
+          "numberOfElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "empty": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PageableObject": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject"
+          },
+          "paged": {
+            "type": "boolean"
+          },
+          "unpaged": {
+            "type": "boolean"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SortObject": {
+        "type": "object",
+        "properties": {
+          "empty": {
+            "type": "boolean"
+          },
+          "sorted": {
+            "type": "boolean"
+          },
+          "unsorted": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}
