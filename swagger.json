@@ -232,11 +232,23 @@
             }
           },
           {
-            "name": "pageable",
+            "name": "page",
             "in": "query",
-            "required": true,
+            "description": "Numéro de la page (commence à 0)",
+            "required": false,
             "schema": {
-              "$ref": "#/components/schemas/Pageable"
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Nombre d'éléments par page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
             }
           }
         ],
@@ -376,16 +388,19 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Image récupérée avec succès",
+          "404": {
+            "description": "Champion, skin ou image non trouvé(e)",
             "content": {
               "image/webp": {
-
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },
-          "404": {
-            "description": "Champion, skin ou image non trouvé(e)",
+          "200": {
+            "description": "Image récupérée avec succès",
             "content": {
               "image/webp": {
                 "schema": {
@@ -446,16 +461,19 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Image récupérée avec succès",
+          "404": {
+            "description": "Champion, compétence ou image non trouvé(e)",
             "content": {
               "image/webp": {
-
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },
-          "404": {
-            "description": "Champion, compétence ou image non trouvé(e)",
+          "200": {
+            "description": "Image récupérée avec succès",
             "content": {
               "image/webp": {
                 "schema": {
@@ -506,16 +524,19 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Image récupérée avec succès",
+          "404": {
+            "description": "Champion ou image non trouvé(e)",
             "content": {
               "image/webp": {
-
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },
-          "404": {
-            "description": "Champion ou image non trouvé(e)",
+          "200": {
+            "description": "Image récupérée avec succès",
             "content": {
               "image/webp": {
                 "schema": {
@@ -578,16 +599,19 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Image récupérée avec succès",
+          "404": {
+            "description": "Champion, skin ou image non trouvé(e)",
             "content": {
               "image/webp": {
-
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },
-          "404": {
-            "description": "Champion, skin ou image non trouvé(e)",
+          "200": {
+            "description": "Image récupérée avec succès",
             "content": {
               "image/webp": {
                 "schema": {
@@ -638,16 +662,19 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Image récupérée avec succès",
+          "404": {
+            "description": "Champion ou image non trouvé(e)",
             "content": {
               "image/webp": {
-
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },
-          "404": {
-            "description": "Champion ou image non trouvé(e)",
+          "200": {
+            "description": "Image récupérée avec succès",
             "content": {
               "image/webp": {
                 "schema": {
@@ -1039,27 +1066,6 @@
           }
         }
       },
-      "Pageable": {
-        "type": "object",
-        "properties": {
-          "page": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "size": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "sort": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
       "PageChampion": {
         "type": "object",
         "properties": {
@@ -1116,12 +1122,6 @@
           "sort": {
             "$ref": "#/components/schemas/SortObject"
           },
-          "paged": {
-            "type": "boolean"
-          },
-          "unpaged": {
-            "type": "boolean"
-          },
           "pageNumber": {
             "type": "integer",
             "format": "int32"
@@ -1129,6 +1129,12 @@
           "pageSize": {
             "type": "integer",
             "format": "int32"
+          },
+          "paged": {
+            "type": "boolean"
+          },
+          "unpaged": {
+            "type": "boolean"
           }
         }
       },
