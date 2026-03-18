@@ -2,6 +2,8 @@
 
 import { getGetLoadingUrl } from "@/api/generated/betterdle"
 import { Champion } from "@/api/generated/model/champion"
+import { Eye } from 'lucide-react';
+import Link from 'next/link';
 
 interface ChampionCardProps {
     champion: Champion
@@ -9,41 +11,67 @@ interface ChampionCardProps {
     locale?: string
 }
 
-/**
- * ChampionCard component to display a champion's loading image and name.
- * Uses optimized direct URL for image loading.
- */
 export const ChampionCard = ({
     champion,
     game = "lol",
     locale = "fr_FR"
 }: ChampionCardProps) => {
-    const imageUrl = getGetLoadingUrl(game, locale, champion.name ?? "", { skinNum: 0 });
+    const champName = champion.name || "";
+    const imageUrl = getGetLoadingUrl(game, locale, champName, { skinNum: 0 });
 
     return (
-        <div className="group relative rounded-xl h-[330px] overflow-hidden bg-[#1e2328] border border-[#3c3c41] transition-all duration-300 hover:scale-105 hover:border-[#c8aa6e] hover:shadow-[0_0_20px_rgba(200,170,110,0.3)] cursor-pointer shadow-lg">
-            {/* Background Image */}
-            <div className="absolute inset-0 w-full h-full">
+        <Link 
+            href={`/game/${game}/wiki/${champName}`}
+            className="group relative block aspect-[3/4.5] overflow-hidden rounded-xl glass-card border-white/5 cursor-pointer shadow-2xl transition-all duration-700 animate-fade-in hover:border-riot-gold/40 hover:-translate-y-2 hover:shadow-riot-gold/20"
+        >
+            {/* Background Image with Ken Burns effect on hover */}
+            <div className="absolute inset-0 w-full h-full overflow-hidden">
                 <img
                     src={imageUrl}
-                    alt={champion.name ?? 'Champion'}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
+                    alt={champName}
+                    className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110 grayscale-[30%] group-hover:grayscale-0 opacity-40 group-hover:opacity-80"
                     loading="lazy"
                 />
             </div>
 
-            {/* Aesthetic Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-black/40 to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
-
-            {/* Bottom Content */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 transform transition-transform duration-300 translate-y-2 group-hover:translate-y-0">
-                <h3 className="text-[#f0e6d2] font-serif text-xl font-bold uppercase tracking-wider text-center drop-shadow-md">
-                    {champion.name}
-                </h3>
-                <div className="h-0 flex justify-center opacity-0 group-hover:opacity-100 group-hover:h-auto transition-all duration-300 pt-2">
-                    <span className="w-8 h-1 bg-[#c8aa6e] rounded-full"></span>
-                </div>
+            {/* Aesthetic Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-700" />
+            <div className="absolute inset-0 bg-gradient-to-br from-riot-gold/5 via-transparent to-riot-blue/5 opacity-0 group-hover:opacity-40 transition-opacity duration-700" />
+            
+            {/* Scanline Effect on Hover */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-0 group-hover:opacity-20 transition-opacity duration-500">
+                <div className="w-full h-[50%] bg-gradient-to-b from-transparent via-white/40 to-transparent animate-scan-line" />
             </div>
-        </div>
+
+            {/* Content Container */}
+            <div className="absolute inset-0 flex flex-col justify-end p-6">
+                <div className="relative z-20 transition-transform duration-500 transform translate-y-4 group-hover:translate-y-0 text-center">
+                    <span className="text-[9px] uppercase tracking-[0.5em] font-black text-riot-gold/60 opacity-0 group-hover:opacity-100 transition-all duration-700 mb-2 block">
+                        Dossier Confidentiel
+                    </span>
+                    
+                    <h3 className="text-[#f0e6d2] font-serif text-2xl font-bold uppercase tracking-[0.1em] drop-shadow-2xl">
+                        {champName}
+                    </h3>
+
+                    {/* Meta info revealed on hover */}
+                    <div className="flex flex-col items-center mt-4 space-y-3 opacity-0 group-hover:opacity-100 transition-all duration-700 delay-100">
+                        <div className="h-0.5 w-12 bg-riot-gold rounded-full" />
+                        <div className="flex items-center gap-2 text-riot-gold-light/60 text-[10px] uppercase font-bold tracking-[.3em]">
+                            Consulter la fiche <Eye size={12} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Decorative corners */}
+                <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-white/5 group-hover:border-riot-gold/40 transition-colors duration-700" />
+                <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-white/5 group-hover:border-riot-gold/40 transition-colors duration-700" />
+            </div>
+
+            {/* Hover Frame Glow */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+                <div className="absolute inset-[1px] border border-riot-gold/10 rounded-xl" />
+            </div>
+        </Link>
     )
 }
